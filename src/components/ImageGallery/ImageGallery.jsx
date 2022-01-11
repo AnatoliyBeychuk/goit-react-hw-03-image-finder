@@ -6,7 +6,8 @@ import { Gallery } from "./ImageGallery.styled";
 function ImageGallery({ dataImg, onOpenModal, onSelectImage }) {
   const listEndRef = useRef(null);
   const scrollToBottom = () => {
-    listEndRef.current.scrollIntoView({ behavior: "smooth" });
+    if (dataImg.length > 12)
+      listEndRef.current.scrollIntoView({ behavior: "smooth" });
   };
   useEffect(scrollToBottom, [dataImg]);
   return (
