@@ -11,12 +11,29 @@ class App extends Component {
   state = {
     images: [],
     query: "",
+    page: 1,
     showModal: false,
     selectedImage: null,
     status: "idle",
     error: null,
     total: 0,
   };
+
+  componentDidUpdate(prevProps, prevState) {
+    const nextQuery = this.state.query;
+    const prevQuery = prevState.query;
+    //Первая загрузка после ввода поискового запроса
+    if (prevQuery !== nextQuery) {
+      this.loadImages(nextQuery);
+      this.setState({ images: [] });
+    }
+    const nextPage = this.state.page;
+    const prevPage = prevState.page;
+    //Кнопка "Load more..."
+    if (prevPage !== nextPage && nextPage > 1) {
+      this.loadImages(prevQuery);
+    }
+  }
 
   toggleModal = () => {
     this.setState(({ showModal }) => ({
@@ -29,14 +46,11 @@ class App extends Component {
   };
 
   onSearch = (query) => {
-    PixabayAPI.resetPage();
-    this.loadImages(query);
-    this.setState({ images: [], query });
+    this.setState({ query, page: PixabayAPI.resetPage() });
   };
 
   onLoadMore = () => {
-    PixabayAPI.nextPage();
-    this.loadImages(this.state.query);
+    this.setState({ page: PixabayAPI.nextPage() });
   };
 
   loadImages = (query) => {
@@ -74,19 +88,17 @@ class App extends Component {
         {status === "idle" && (
           <h1>Воспользуйтесь поиском, чтобы найти нужную картинку!</h1>
         )}
-        <>
-          <ImageGallery
-            dataImg={this.state.images}
-            onOpenModal={this.toggleModal}
-            onSelectImage={this.handleSelectedImage}
-          />
-          {!hasNextPage && status === "resolved" && (
-            <Button onClick={this.onLoadMore} />
-          )}
-          {showModal && (
-            <Modal image={selectedImage} onClose={this.toggleModal} />
-          )}
-        </>
+        <ImageGallery
+          dataImg={this.state.images}
+          onOpenModal={this.toggleModal}
+          onSelectImage={this.handleSelectedImage}
+        />
+        {!hasNextPage && status === "resolved" && (
+          <Button onClick={this.onLoadMore} />
+        )}
+        {showModal && (
+          <Modal image={selectedImage} onClose={this.toggleModal} />
+        )}
         {status === "rejected" && <h1>{error.message}</h1>}
         {status === "pending" && <Loader />}
       </>
